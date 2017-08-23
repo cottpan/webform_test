@@ -1,12 +1,20 @@
 <?php
 
-class Controller_Form extends Controller
+class Controller_Entry extends Controller
 {
 
   private $fields = array('name', 'email', 'msg');
 
   public function action_index()
   {
+    $layout = View::forge('common/layout');
+
+    $layout->set_global("sitename","Form test site");
+    $layout->head = View::forge('common/head',array("pagetitle"=>"エントリー"));
+    $layout->header = View::forge('common/header');
+    $layout->footer = View::forge('common/footer');
+
+
     if(Input::post('submit'))
     {
       foreach ($this->fields as $field)
@@ -23,13 +31,15 @@ class Controller_Form extends Controller
 
     if($val->run() and Security::check_token())
     {
-      Response::redirect('form/conf.php');
+      Response::redirect('form/conf');
     }
 
     $data = array();
 
     $data['val'] = $val;
-    return View::forge('form/form.php',$data);
+    $layout->contents =  View::forge('form/form',$data);
+
+    return $layout;
   }
 
   public function action_conf()
@@ -41,7 +51,7 @@ class Controller_Form extends Controller
       $data[$field] = Session::get_flash($field);
       Session::keep_flash($field);
     }
-    $view = View::forge('form/conf.php', $data);
+    $view = View::forge('form/conf', $data);
 
     return $view;
   }
