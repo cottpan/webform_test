@@ -1,11 +1,7 @@
 <?php
 
-/**
- *
- */
-class Controller_Test extends Controller
+class Controller_System_Admin extends Controller
 {
-
   public function action_index()
   {
     $layout = View::forge('common/layout');
