@@ -3,7 +3,9 @@
 class Controller_Entry extends Controller
 {
 
-  private $fields = array('name', 'ruby', 'year', 'month', 'day', 'prefecture', 'address', 'email', 'magazine', 'magazine_type');
+  private $fields = array('entry_name', 'entry_ruby', 'entry_birthday_year', 'entry_birthday_month', 'entry_birthday_day', 'entry_prefecture', 'entry_address',
+  'entry_telephone_h', 'entry_telephone_m', 'entry_telephone_l', 'entry_email', 'entry_magazine', 'entry_magazine_type');
+  
   private $select_year = array(
     "1950" => "1950", "1951" => "1951", "1952" => "1952", "1953" => "1953", "1954" => "1954",
     "1955" => "1955", "1956" => "1956", "1957" => "1957", "1958" => "1958", "1959" => "1959",
@@ -44,12 +46,12 @@ class Controller_Entry extends Controller
 
   public function action_index()
   {
-    $layout = View::forge('common/layout');
+    $view = View::forge('common/layout');
 
-    $layout->set_global("sitename","Form test site");
-    $layout->head = View::forge('common/head',array("pagetitle"=>"エントリー"));
-    $layout->header = View::forge('common/header');
-    $layout->footer = View::forge('common/footer');
+    $view->set_global("sitename","Form test site");
+    $view->head = View::forge('common/head',array("pagetitle"=>"エントリー"));
+    $view->header = View::forge('common/header');
+    $view->footer = View::forge('common/footer');
 
 
     if(Input::post('submit'))
@@ -58,26 +60,35 @@ class Controller_Entry extends Controller
       {
           Session::set_flash($field, Input::post($field));
       }
+      
     }
 
     $val = Validation::forge();
 
-    $val->add('name', '名前')->add_rule('required');
-    $val->add('ruby', 'ふりがな')->add_rule('required');
-    $val->add('year', '年')->add_rule('required');
-    $val->add('month', '月')->add_rule('required');
-    $val->add('day', '日')->add_rule('required');
-    $val->add('prefecture', '都道府県')->add_rule('required');
-    $val->add_field('address','ご住所','required');
-    $val->add('telephone_h', '電話番号上')->add_rule('required')->add_rule('valid_string', array('numeric'));
-    $val->add_field('telephone_m', '電話番号中', 'required|valid_string[numeric]');
-    $val->add('telephone_l', '電話番号下')->add_rule('required')->add_rule('valid_string', array('numeric'));
-    $val->add('email', 'メール')->add_rule('required')->add_rule('valid_email');
+    $val->add('entry_name', '名前')->add_rule('required');
+    $val->add('entry_ruby', 'ふりがな')->add_rule('required');
+    $val->add('entry_birthday_year', '年')->add_rule('required');
+    $val->add('entry_birthday_month', '月')->add_rule('required');
+    $val->add('entry_birthday_day', '日')->add_rule('required');
+    $val->add_field('entry_birthday', '生年月日', 'valid_date[Y-m-d]');
+    $val->add('entry_prefecture', '都道府県')->add_rule('required');
+    $val->add_field('entry_address','ご住所','required');
+    $val->add('entry_telephone_h', '電話番号上')->add_rule('required')->add_rule('valid_string', array('numeric'));
+    $val->add_field('entry_telephone_m', '電話番号中', 'required|valid_string[numeric]');
+    $val->add('entry_telephone_l', '電話番号下')->add_rule('required')->add_rule('valid_string', array('numeric'));
+    $val->add('entry_email', 'メール')->add_rule('required')->add_rule('valid_email');
     //$val->add('msg', '内容')->add_rule('required');
 
     if($val->run() and Security::check_token())
     {
-      Response::redirect('form/conf');
+      //Response::redirect('/conf');
+      foreach ($this->fields as $field)
+      {
+        $data[$field] = Session::get_flash($field);
+        Session::keep_flash($field);
+      }
+      $view->contents = View::forge('form/conf', $data);
+      return $view;
     }
 
     $data = array();
@@ -87,22 +98,38 @@ class Controller_Entry extends Controller
     $data['month'] = $this->select_month;
     $data['day'] = $this->select_day;
     $data['prefecture'] = $this->PREFECTURE;
-    $layout->contents =  View::forge('form/form',$data);
+    $view->contents = View::forge('form/form',$data);
 
-    return $layout;
+    return $view;
   }
 
   public function action_conf()
   {
     $data = array();
+    
+    $view = View::forge('common/layout');
 
+    $view->set_global("sitename","Form test site");
+    $view->head = View::forge('common/head',array("pagetitle"=>"エントリー"));
+    $view->header = View::forge('common/header');
+    $view->footer = View::forge('common/footer');
+    
+    if(Input::post('submit'))
+    {
+      foreach ($this->fields as $field)
+      {
+          Session::set_flash($field, Input::post($field));
+      }
+      
+    }
+    
     foreach ($this->fields as $field)
     {
       $data[$field] = Session::get_flash($field);
       Session::keep_flash($field);
     }
-    $view = View::forge('form/conf', $data);
-
+    $view->contents = View::forge('form/conf', $data);
+    
     return $view;
   }
 }
